@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
@@ -8,36 +8,63 @@ interface LocalOllamaModel {
   size: number;
 }
 
+// --- Interface for displayed messages ---
+interface ChatMessageUI {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 function App() {
   const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [listModels, setListModels] = useState<LocalOllamaModel[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>("");
+  const [conversation, setConversation] = useState<ChatMessageUI[]>([]);
 
+  // Ref for scrolling to bottom
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  // --- Auto-scroll effect ---
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [conversation]); // Scroll when conversation changes
+
+  // --- Fetch models on initial mount ---
   useEffect(() => {
     getListModels();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!prompt || !selectedModel || isLoading) return;
+    const currentPrompt = prompt.trim(); // Capture prompt before clearing
+    if (!currentPrompt || !selectedModel || isLoading) return;
 
+    const userMessage: ChatMessageUI = { role: 'user', content: currentPrompt };
+
+    // Update display state optimistically with user message
+    setConversation(prev => [...prev, userMessage]);
+    setPrompt(""); // Clear input
     setIsLoading(true);
     setError("");
-    setResponse("");
 
     try {
-      const result: string = await invoke("ask_llm", {
-        prompt: prompt,
+      // --- Pass ONLY the new prompt and model to the backend ---
+      // The backend now manages the actual history context
+      const assistantResponseContent: string = await invoke("ask_llm", {
+        prompt: currentPrompt, // Send only the new prompt string
         model: selectedModel
       });
-      setResponse(result);
+
+      // Add assistant response to the DISPLAY state
+      const assistantMessage: ChatMessageUI = { role: 'assistant', content: assistantResponseContent };
+      setConversation(prev => [...prev, assistantMessage]);
 
     } catch (err) {
       console.error("Error invoking ask_llm:", err);
       setError(`Failed to get response: ${err}`);
+      // Optional: Remove the optimistic user message on error
+      // setConversation(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
@@ -47,18 +74,27 @@ function App() {
     setError("");
     setListModels([]);
     setSelectedModel("");
-    console.log("Attempting to invoke 'get_ollama_models'...");
-
+    // --- Also clear local conversation display when fetching models ---
+    setConversation([]);
+    // --- Call backend to clear its history state ---
     try {
+        await invoke("clear_chat_history");
+        console.log("Backend history cleared.");
+    } catch (clearErr) {
+        console.error("Failed to clear backend history:", clearErr);
+        // Decide how to handle this - maybe show an error?
+    }
+    // --- End history clearing ---
+
+    console.log("Attempting to invoke 'get_ollama_models'...");
+    try {
+      // Type the expected result correctly (Result pattern not shown here, adjust if using Result in Rust)
       const results: LocalOllamaModel[] = await invoke("get_ollama_models");
       console.log("Successfully invoked 'get_ollama_models'. Results:", results);
       setListModels(results);
-
       if (results.length > 0) {
         setSelectedModel(results[0].name);
-        console.log("Set default model:", results[0].name);
       }
-
     } catch (err) {
       console.error("Error invoking 'get_ollama_models':", err);
       setError(`Failed to get models: ${err}`);
@@ -67,77 +103,78 @@ function App() {
     }
   }
 
-  const handleModelSelect = (modelName: string) => {
+  const handleModelSelect = async (modelName: string) => {
     setSelectedModel(modelName);
-    console.log("Selected model:", modelName);
+    setConversation([]); // Clear local conversation display
+    setError("");
+     // --- Call backend to clear its history state when model changes ---
+     try {
+        await invoke("clear_chat_history");
+        console.log("Backend history cleared due to model change.");
+    } catch (clearErr) {
+        console.error("Failed to clear backend history:", clearErr);
+        setError(`Failed to clear backend history: ${clearErr}`);
+    }
+     // --- End history clearing ---
   };
 
   return (
-    <main className="container">
-      <h1>Welcome to our Ollama interface</h1>
+    <main className="container chat-container"> {/* Add chat-container class */}
+      <h1>Ollama Chat</h1>
 
-      {selectedModel && <p>Selected Model: <strong>{selectedModel}</strong></p>}
-
-      <div className="models-list" style={{ marginTop: '1rem', textAlign: 'left', maxWidth: '600px', width: '100%' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <h3>Available Ollama Models:</h3>
-          <button onClick={getListModels} disabled={isLoading} title="Refresh Models List">
-            🔄 Refresh
-          </button>
-        </div>
-        {listModels.length > 0 ? (
-          <ul>
-            {listModels.map((model) => {
-              const isSelected = model.name === selectedModel;
-              return (
-                <li
-                  key={model.name}
-                  onClick={() => handleModelSelect(model.name)}
-                  style={{
-                    marginBottom: '0.25rem',
-                    cursor: 'pointer',
-                    padding: '0.25em 0.5em',
-                    borderRadius: '4px',
-                    backgroundColor: isSelected ? '#646cff' : 'transparent',
-                    color: isSelected ? 'white' : 'inherit',
-                    fontWeight: isSelected ? 'bold' : 'normal',
-                  }}
-                >
-                  {model.name} ({(model.size / 1_000_000_000).toFixed(2)} GB)
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-            <p><i>{isLoading ? "Loading models..." : "No models found or failed to load."}</i></p>
-        )}
+      {/* --- Model Selection --- */}
+      <div className="model-selector" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <label htmlFor="model-select">Model:</label>
+          <select /* ... dropdown setup remains the same ... */
+            id="model-select"
+            value={selectedModel}
+            onChange={(e) => handleModelSelect(e.target.value)} // Use handler
+            disabled={listModels.length === 0 || isLoading}
+          >
+            {listModels.length === 0 && <option value="" disabled>Loading...</option>}
+            {listModels.map((model) => (
+              <option key={model.name} value={model.name}>
+                {model.name} ({(model.size / 1_000_000_000).toFixed(2)} GB)
+              </option>
+            ))}
+          </select>
+           <button onClick={getListModels} disabled={isLoading} title="Refresh Models List">🔄</button>
       </div>
 
-      <h2>Ask the LLM</h2>
+      {/* --- Conversation History Display (uses local state) --- */}
+      <div className="conversation-history">
+        {conversation.map((msg, index) => (
+          <div key={index} className={`message ${msg.role}`}>
+            <span className="role-indicator">{msg.role === 'user' ? 'You' : 'AI'}:</span>
+            <div className="message-content">
+                {/* Use pre for preserving formatting */}
+                <pre>{msg.content}</pre>
+            </div>
+          </div>
+        ))}
+        {/* Invisible element to scroll to */}
+        <div ref={messagesEndRef} />
+      </div>
+       {/* Display loading indicator */}
+       {isLoading && <div className="message assistant loading"><i>AI is thinking...</i></div>}
 
-      <form className="row" onSubmit={handleSubmit}>
+       {/* Error display */}
+       {error && <p className="error-message">{error}</p>}
+
+      {/* --- Prompt Input Form --- */}
+      <form className="prompt-form" onSubmit={handleSubmit}>
         <input
           id="prompt-input"
           value={prompt}
           onChange={(e) => setPrompt(e.currentTarget.value)}
           placeholder="Enter your prompt..."
-          disabled={isLoading}
+          disabled={isLoading || !selectedModel} // Disable if no model selected// Use textarea for potentially longer input
         />
-        <button type="submit" disabled={isLoading || !prompt || !selectedModel}>
-          {isLoading ? "Thinking..." : "Ask LLM"}
+        <button type="submit" disabled={isLoading || !prompt.trim() || !selectedModel}>
+          Send
         </button>
       </form>
 
-      {error && <p className="error-message">{error}</p>}
-
-      {response && (
-        <div className="response-area">
-          <h3>Response:</h3>
-          <pre className="response-pre">
-            {response}
-          </pre>
-        </div>
-      )}
     </main>
   );
 }

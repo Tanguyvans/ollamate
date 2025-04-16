@@ -10,11 +10,10 @@
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
-  line-height: 1.5; /* Adjusted from 24px for better scaling */
+  line-height: 1.5;
   font-weight: 400;
-
-  color: #0f0f0f;
-  background-color: #f6f6f6;
+  color: #213547; /* Slightly darker default text */
+  background-color: #ffffff;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -23,180 +22,228 @@
   -webkit-text-size-adjust: 100%;
 }
 
-/* Container styles */
-.container {
-  margin: 0 auto; /* Center container */
-  padding: 2.5rem 1rem; /* Adjusted padding */
+/* Overall container setup */
+.container.chat-container {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center items */
+  height: 100vh; /* Full viewport height */
+  max-width: 800px; /* Or your preferred max width */
+  margin: 0 auto;
+  padding: 0; /* Remove padding, handle internally */
+  box-sizing: border-box;
+}
+
+/* Header/Model Selection Area */
+.model-selector-area {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #f9f9f9;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+.model-selector-area label {
+    font-weight: 500;
+}
+.model-selector-area select {
+  /* Add some basic select styling if needed */
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+.model-selector-area button {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.9em;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+
+/* Conversation History Area */
+.conversation-history {
+  flex-grow: 1; /* Takes up available vertical space */
+  overflow-y: auto; /* Enables vertical scrolling */
+  padding: 1rem;
+  display: flex; /* Use flexbox for messages */
+  flex-direction: column; /* Stack messages vertically */
+  gap: 0.75rem; /* Space between messages */
+  /* Removed border and background, rely on message styling */
+}
+
+/* Individual Message Styling */
+.message {
+  padding: 0.6rem 0.9rem;
+  border-radius: 18px; /* More rounded bubbles */
+  max-width: 75%; /* Max width of bubble */
+  word-wrap: break-word;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.message .role-indicator {
+  /* Hide the text indicator, rely on alignment/color */
+  display: none;
+}
+
+.message .message-content pre {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 1em;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+/* User Message Styling */
+.message.user {
+  background-color: #007bff; /* Example blue color */
+  color: white;
+  border-bottom-right-radius: 4px; /* Different corner radius */
+  margin-left: auto; /* Align right */
+  align-self: flex-end; /* Align bubble itself to the right */
+}
+
+/* Assistant Message Styling */
+.message.assistant {
+  background-color: #e9ecef; /* Light grey */
+  color: #333;
+  border-bottom-left-radius: 4px; /* Different corner radius */
+  margin-right: auto; /* Align left */
+  align-self: flex-start; /* Align bubble itself to the left */
+}
+
+.message.assistant.loading {
+    background-color: transparent;
+    box-shadow: none;
+    font-style: italic;
+    color: #666;
+    align-self: flex-start;
+}
+
+/* Error Message Styling */
+.error-message {
+  color: #dc3545;
   text-align: center;
-  min-height: 100vh;
-  max-width: 800px; /* Limit max width */
+  padding: 0.5rem 1rem;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
-
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
-
-/* Row layout for form */
-.row {
+/* Prompt Input Area */
+.prompt-form {
   display: flex;
-  justify-content: center;
-  align-items: center; /* Vertically align items in the row */
-  gap: 0.5rem; /* Add space between input and button */
-  margin: 1rem 0; /* Add vertical margin */
-  width: 100%;
-  max-width: 600px; /* Limit form width */
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f9f9f9;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
-h1 {
-  font-size: 2em; /* Larger heading */
-  margin-bottom: 1.5rem;
+.prompt-form input {
+  flex-grow: 1;
+  border-radius: 18px; /* Match bubble roundness */
+  border: 1px solid #ccc;
+  padding: 0.5em 1em;
+  font-size: 1em;
+  font-family: inherit;
+  outline: none;
+  resize: none; /* Disable textarea resize if using input */
+}
+.prompt-form input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
-h2 {
-  font-size: 1.5em;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-}
 
-h3 {
-    font-size: 1.2em;
-    margin-bottom: 0.5rem;
-}
-
-/* Input and Button base styles */
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
+.prompt-form button {
+  border-radius: 18px;
+  padding: 0.5em 1.2em;
   font-size: 1em;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #ffffff;
-  color: #0f0f0f;
-  transition: border-color 0.25s, background-color 0.25s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-input {
-  flex-grow: 1; /* Allow input to take available space */
-  border-color: #ccc; /* Default border */
-}
-
-input:focus {
-    outline: none;
-    border-color: #646cff;
-    box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.3);
-}
-
-button {
   cursor: pointer;
-  background-color: #646cff;
+  background-color: #007bff;
   color: white;
-  border-color: #646cff;
+  border: none;
+  transition: background-color 0.2s ease;
 }
-
-button:hover {
-  background-color: #535bf2;
-  border-color: #535bf2;
+.prompt-form button:hover {
+  background-color: #0056b3;
 }
-
-button:active {
-  background-color: #454ce1;
-  border-color: #454ce1;
-}
-
-button:disabled {
-  opacity: 0.5;
+.prompt-form button:disabled {
+  background-color: #6c757d;
   cursor: not-allowed;
 }
 
-/* Styles for the LLM response area */
-.response-area {
-    margin-top: 1.5rem;
-    width: 100%;
-    max-width: 600px; /* Match form width */
-    text-align: left; /* Align text inside */
-}
-
-.response-pre {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  border: 1px solid #ccc;
-  padding: 0.75em; /* Slightly more padding */
-  background-color: #f9f9f9;
-  text-align: left;
-  border-radius: 4px;
-  overflow-x: auto; /* Add horizontal scroll if needed */
-  line-height: 1.4; /* Adjust line height for readability */
-}
-
-/* Error message style */
-.error-message {
-    color: #d93025; /* Red color for errors */
-    margin-top: 0.5rem;
-}
 
 /* Dark Mode Styles */
 @media (prefers-color-scheme: dark) {
   :root {
-    color: #f6f6f6;
-    background-color: #242424; /* Slightly darker background */
+    color: #c9d1d9;
+    background-color: #0d1117; /* Dark background */
   }
 
-  a:hover {
-    color: #24c8db; /* Keep or adjust link hover */
+  .model-selector-area {
+      background-color: #161b22;
+      border-bottom-color: #30363d;
+  }
+  .model-selector-area select {
+      background-color: #21262d;
+      border-color: #404854;
+      color: #c9d1d9;
+  }
+  .model-selector-area button {
+      color: #c9d1d9;
   }
 
-  input,
-  button {
-    background-color: #3a3a3a;
-    color: #ffffff;
-    border-color: #555;
+
+  .conversation-history {
+    /* No background needed */
   }
 
-  input:focus {
-    border-color: #24c8db;
-    box-shadow: 0 0 0 2px rgba(36, 200, 219, 0.3);
+  .message.user {
+    background-color: #1f6feb; /* Slightly different blue for dark */
   }
 
-  button {
-      background-color: #24c8db;
-      color: #1a1a1a; /* Dark text on light blue button */
-      border-color: #24c8db;
+  .message.assistant {
+    background-color: #21262d; /* Darker grey */
+    color: #c9d1d9;
   }
 
-  button:hover {
-    background-color: #1fb7c7;
-    border-color: #1fb7c7;
-  }
-
-  button:active {
-      background-color: #1aa6b6;
-      border-color: #1aa6b6;
-  }
-
-  button:disabled {
-      /* Keep default disabled styles or customize */
-  }
-
-  .response-pre {
-    border-color: #555;
-    background-color: #2f2f2f; /* Darker background for pre */
-    color: #f1f1f1;
-  }
+   .message.assistant.loading {
+      background-color: transparent;
+      color: #8b949e;
+    }
 
   .error-message {
-      color: #f87171; /* Lighter red for dark mode */
+    color: #f85149;
   }
+
+  .prompt-form {
+    background-color: #161b22;
+    border-top-color: #30363d;
+  }
+
+  .prompt-form input {
+    background-color: #21262d;
+    color: #c9d1d9;
+    border-color: #404854;
+  }
+   .prompt-form input:focus {
+    border-color: #1f6feb;
+    box-shadow: 0 0 0 2px rgba(31, 111, 235, 0.3);
+  }
+
+
+  .prompt-form button {
+    background-color: #1f6feb;
+    color: white;
+  }
+  .prompt-form button:hover {
+    background-color: #388bfd;
+  }
+  .prompt-form button:disabled {
+    background-color: #30363d;
+  }
+
 }
