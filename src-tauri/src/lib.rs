@@ -1,50 +1,50 @@
 use ollama_rs::generation::chat::request::ChatMessageRequest;
-use ollama_rs::generation::chat::ChatMessage;
-use ollama_rs::models::LocalModel;
+use ollama_rs::generation::chat::{ChatMessage, MessageRole};
 use ollama_rs::Ollama;
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use serde::{Deserialize, Serialize};
 
-struct AppState {
-    chat_history: Arc<Mutex<Vec<ChatMessage>>>,
+// --- Struct matching the frontend's ChatMessageUI ---
+// Used to receive messages from the frontend
+#[derive(Deserialize, Debug)]
+struct FrontendMessage {
+    role: String,
+    content: String,
 }
 
-impl Default for AppState {
-    fn default() -> Self {
-        AppState {
-            chat_history: Arc::new(Mutex::new(Vec::new())),
-        }
+// Optional wrapper for LocalModel if it doesn't derive Serialize
+#[derive(Serialize, Clone, Debug)]
+struct SerializableModel {
+    name: String,
+    modified_at: String,
+    size: u64,
+}
+
+#[tauri::command]
+async fn ask_llm(messages: Vec<FrontendMessage>, model: String) -> Result<String, String> {
+    let ollama = Ollama::default();
+
+    println!("Received {} messages for model '{}'", messages.len(), model);
+
+    // Map frontend messages to ollama_rs::ChatMessage
+    let chat_messages: Vec<ChatMessage> = messages
+        .into_iter()
+        .map(|msg| {
+            let role = match msg.role.as_str() {
+                "user" => MessageRole::User,
+                "assistant" => MessageRole::Assistant,
+                _ => MessageRole::User,
+            };
+            ChatMessage::new(role, msg.content)
+        })
+        .collect();
+
+    if chat_messages.is_empty() {
+        return Err("No messages provided to LLM.".to_string());
     }
-}
 
-#[tauri::command]
-async fn translate(text: String) -> String {
-    return format!("Hello world {}", text);
-}
-
-#[tauri::command]
-async fn ask_llm(
-    prompt: String,
-    model: String,
-    state: tauri::State<'_, AppState>,
-) -> Result<String, String> {
-    let mut ollama = Ollama::default();
-
-    let mut history = state.chat_history.lock().await;
-
-    println!(
-        "Sending prompt for model '{}'. History length: {}",
-        model,
-        history.len()
-    );
-
-    let user_message = ChatMessage::user(prompt);
-
+    // Use send_chat_messages (stateless regarding history)
     let res = ollama
-        .send_chat_messages_with_history(
-            &mut *history,
-            ChatMessageRequest::new(model, vec![user_message]),
-        )
+        .send_chat_messages(ChatMessageRequest::new(model, chat_messages))
         .await;
 
     match res {
@@ -60,10 +60,21 @@ async fn ask_llm(
 }
 
 #[tauri::command]
-async fn get_ollama_models() -> Result<Vec<LocalModel>, String> {
+async fn get_ollama_models() -> Result<Vec<SerializableModel>, String> {
     let ollama = Ollama::default();
     match ollama.list_local_models().await {
-        Ok(models) => Ok(models),
+        Ok(models) => {
+            // Map to serializable struct
+            let serializable_models = models
+                .into_iter()
+                .map(|m| SerializableModel {
+                    name: m.name,
+                    modified_at: m.modified_at,
+                    size: m.size,
+                })
+                .collect();
+            Ok(serializable_models)
+        }
         Err(e) => {
             eprintln!("Failed to list Ollama models: {}", e);
             Err(format!("Failed to list Ollama models: {}", e))
@@ -71,25 +82,12 @@ async fn get_ollama_models() -> Result<Vec<LocalModel>, String> {
     }
 }
 
-#[tauri::command]
-async fn clear_chat_history(state: tauri::State<'_, AppState>) -> Result<(), String> {
-    println!("Clearing chat history on backend.");
-    let mut history = state.chat_history.lock().await;
-    history.clear();
-    Ok(())
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_sql::Builder::default().build())
         .plugin(tauri_plugin_opener::init())
-        .manage(AppState::default())
-        .invoke_handler(tauri::generate_handler![
-            get_ollama_models,
-            ask_llm,
-            translate,
-            clear_chat_history
-        ])
+        .invoke_handler(tauri::generate_handler![get_ollama_models, ask_llm])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
