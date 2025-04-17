@@ -21,42 +21,71 @@ struct SerializableModel {
 
 #[tauri::command]
 async fn ask_llm(messages: Vec<FrontendMessage>, model: String) -> Result<String, String> {
-    let ollama = Ollama::default();
+    let mut ollama = Ollama::default();
+    println!(
+        "Asking LLM (Rust backend) using function from docs for model '{}' with {} total messages received",
+        model,
+        messages.len()
+    );
 
-    println!("Received {} messages for model '{}'", messages.len(), model);
-
-    // Map frontend messages to ollama_rs::ChatMessage
-    let chat_messages: Vec<ChatMessage> = messages
+    // Map all incoming messages
+    let all_chat_messages: Vec<ChatMessage> = messages
         .into_iter()
         .map(|msg| {
             let role = match msg.role.as_str() {
                 "user" => MessageRole::User,
                 "assistant" => MessageRole::Assistant,
+                "system" => MessageRole::System,
                 _ => MessageRole::User,
             };
             ChatMessage::new(role, msg.content)
         })
         .collect();
 
-    if chat_messages.is_empty() {
+    // Separate history from the last message (the prompt)
+    // Ensure there's at least one message to act as the prompt
+    if all_chat_messages.is_empty() {
         return Err("No messages provided to LLM.".to_string());
     }
 
-    // Use send_chat_messages (stateless regarding history)
+    // The last message is the new prompt for the request
+    // We need to clone it as the request takes ownership
+    let last_message = all_chat_messages.last().unwrap().clone();
+
+    // The rest of the messages form the initial history
+    // The library will mutate this history vector
+    let mut history: Vec<ChatMessage> = all_chat_messages.into_iter().rev().skip(1).rev().collect(); // Efficiently get all but last
+
+    println!(
+        "Extracted history size: {}, Prompt: '{}'",
+        history.len(),
+        last_message.content
+    );
+
+    // Create the request with ONLY the last message
+    let req = ChatMessageRequest::new(model.clone(), vec![last_message]);
+
+    // Call the function from the docs example
     let res = ollama
-        .send_chat_messages(ChatMessageRequest::new(model, chat_messages))
+        .send_chat_messages_with_history(&mut history, req)
         .await;
 
+    // --- MODIFIED RESPONSE HANDLING (Direct Access matching Docs Example) ---
     match res {
-        Ok(res) => {
+        Ok(response) => {
+            // Directly access .message.content as shown in the example
+            // This assumes that if the overall Result is Ok, response.message is guaranteed to exist
+            // and is NOT an Option based on compiler errors and the example.
             println!("Ollama responded successfully.");
-            Ok(res.message.content)
+            // Note: The example uses println!, we need to return Ok(content)
+            Ok(response.message.content) // <-- Direct access
         }
         Err(e) => {
             eprintln!("Ollama API error: {}", e);
             Err(format!("Error communicating with Ollama: {}", e))
         }
     }
+    // --- END MODIFIED RESPONSE HANDLING ---
 }
 
 #[tauri::command]
