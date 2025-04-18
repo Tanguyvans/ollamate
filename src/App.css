@@ -62,10 +62,37 @@ body {
   height: 100vh; /* Ensure full height */
 }
 
+/* --- ADDED Sidebar Header & Logo Styles --- */
+.sidebar-header {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Keep vertical centering */
+    padding: 1.5rem 1rem 1rem 1rem; /* Adjusted padding a bit */
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-logo {
+    width: 150px;
+    height: 150px;
+    border-radius: 8px;
+    object-fit: contain;
+    margin-right: 0; /* Remove margin as it's centered now */
+    flex-shrink: 0;
+}
+
+/* Optional: Style for App Name if added next to logo */
+/* .sidebar-appname {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-color-light);
+} */
+/* --- END Sidebar Header & Logo Styles --- */
+
 .sidebar h2 {
-    font-size: 1.1em;
-    margin: 0 0 0.75rem 0;
-    padding: 1rem 1rem 0 1rem; /* Add padding */
+    /* Adjust padding if header is present */
+    padding: 0 1rem 0 1rem; /* Remove top padding */
+    /* margin: 0 0 0.75rem 0; */ /* Keep bottom margin */
     color: var(--text-color-light);
 }
 
@@ -464,6 +491,14 @@ body {
   .message-content pre {
       color: inherit;
   }
+
+  /* Optional: Add filter if logo needs adjustment for dark bg */
+  /* .sidebar-logo { filter: brightness(0) invert(1); } */
+
+  /* Adjust App Name color if used */
+  /* .sidebar-appname {
+      color: var(--text-color-dark);
+  } */
 }
 
 /* Sidebar Chat List Item Styling */
@@ -558,4 +593,92 @@ body {
         color: #888;
         background: none;
     }
+}
+
+/* --- Home Page Styling --- */
+.home-page-container {
+    padding: 2rem 2.5rem; /* More padding */
+    height: 100%;
+    overflow-y: auto; /* Allow scrolling if content grows */
+    background-color: var(--bg-color-light);
+}
+
+.home-title {
+    font-size: 2.5rem; /* Larger title */
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.home-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 650px; /* Limit width for readability */
+    margin-bottom: 2rem;
+    color: #495057; /* Slightly softer text color */
+}
+
+.home-actions {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color-light);
+    max-width: 650px;
+}
+
+.home-actions p {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 1.05rem;
+}
+
+.home-actions ul {
+    list-style: disc; /* Use standard bullets */
+    margin-left: 1.5rem; /* Indent list */
+    padding-left: 0.5rem;
+}
+
+.home-actions li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.home-actions li strong {
+    color: var(--primary-color);
+}
+
+.home-actions li a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+.home-actions li a:hover {
+    text-decoration: underline;
+}
+
+/* --- Dark Mode Home --- */
+@media (prefers-color-scheme: dark) {
+  .home-page-container {
+      background-color: var(--bg-color-dark);
+  }
+
+  .home-title {
+      color: var(--primary-color-dark);
+  }
+
+  .home-description {
+      color: #adb5bd; /* Lighter grey for dark */
+  }
+
+  .home-actions {
+      border-top-color: var(--border-color-dark);
+  }
+
+  .home-actions li strong {
+      color: var(--primary-color-dark);
+  }
+
+  .home-actions li a {
+      color: var(--primary-color-dark);
+  }
 }

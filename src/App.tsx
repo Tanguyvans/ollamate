@@ -21,7 +21,6 @@ function App() {
   const [isDbLoading, setIsDbLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation(); // To highlight active chat
-  const [logs, setLogs] = useState("");
 
   // --- Initialize DB and Load Conversations ---
   const initializeDatabase = useCallback(async () => {
@@ -161,38 +160,25 @@ function App() {
 
   // --- Function to Handle Deleting a Conversation ---
   const handleDeleteConversation = async (conversationId: number) => {
-    setLogs(`Clicked delete for ID: ${conversationId}`); // Your log state update
     if (!db) {
       console.error("[Delete] Database not connected.");
       setDbError("Database not connected. Cannot delete chat.");
-      // setLogs("DB not connected");
       return;
     }
 
     try {
 
       // 3. Delete associated messages first
-      console.log(`[Delete] Deleting messages for conversation_id: ${conversationId}...`);
       const messagesResult = await db.execute(
           "DELETE FROM chat_messages WHERE conversation_id = $1", // <-- Correct SQL
           [conversationId]
       );
-      console.log(`[Delete] Messages deletion result:`, messagesResult);
-      // setLogs(`Deleted ${messagesResult.rowsAffected} messages`);
-
       // 4. Delete the conversation itself
-      console.log(`[Delete] Deleting conversation entry for id: ${conversationId}...`);
       const conversationResult = await db.execute(
           "DELETE FROM conversations WHERE id = $1", // <-- Correct SQL
           [conversationId]
       );
-      console.log(`[Delete] Conversation deletion result:`, conversationResult);
-      // setLogs(`Deleted conversation (rows: ${conversationResult.rowsAffected})`);
-      // *** END CORRECT SQL DELETE STATEMENTS ***
-
-
       // 5. Update frontend state
-      console.log(`[Delete] Updating frontend state (removing ${conversationId})...`);
       setConversations(prevConversations => {
            const newState = prevConversations.filter(c => c.id !== conversationId);
            console.log(`[Delete] New conversations state length: ${newState.length}`);
@@ -224,8 +210,10 @@ function App() {
     <div className="app-layout"> {/* Use className from App.css */}
       {/* Sidebar */}
       <nav className="sidebar"> {/* Use className */}
+        <div className="sidebar-header">
+             <img src="/logo.png" alt="Ollamate Logo" className="sidebar-logo" />
+        </div>
         <div className="navigation-section">
-             <h2>Navigation</h2>
              <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>Home</Link>
              <Link to="/settings" className={`nav-link ${location.pathname === '/settings' ? 'active' : ''}`}>Settings</Link>
         </div>
@@ -233,8 +221,6 @@ function App() {
         <hr style={{ margin: '0 1rem 1rem 1rem', borderColor: 'var(--border-color-light)' }}/>
 
         <div className="chats-section">
-            <h2>Chats</h2>
-            <h3>{logs}</h3>
             <button onClick={handleNewChat} disabled={!db}>+ New Chat</button>
             {dbError && <p className="error-message" style={{fontSize: '0.8em', padding: '0 0.5rem'}}>{dbError}</p>}
             <div className="chats-list"> {/* Scrollable list container */}
