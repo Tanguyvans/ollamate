@@ -93,10 +93,6 @@ Here are a few ways you can contribute:
 
 Let's make Ollamate awesome together!
 
-## License 📄
-
-(Optional: Specify the license, e.g., MIT License, Apache 2.0).
-
 ---
 
 _Generated with assistance from an AI pair programmer._
