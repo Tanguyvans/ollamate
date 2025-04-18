@@ -212,8 +212,9 @@ function ChatPage({ db }: ChatPageProps) {
        <div className="conversation-history">
            {conversation.map((msg, index) => (
                <div key={index} className={`message ${msg.role}`}>
-                   {/* Simple display, add icons or names later if desired */}
-                   <div className="message-content"><pre>{msg.content}</pre></div>
+                   <div className="message-content">
+                       <pre>{msg.content}</pre>
+                   </div>
                </div>
            ))}
            {isLoading && <div className="message assistant loading"><i>AI is thinking...</i></div>}
@@ -236,8 +237,9 @@ function ChatPage({ db }: ChatPageProps) {
            <button
                type="submit"
                disabled={isLoading || !prompt.trim() || !selectedModel || !db || !currentConversationId || isNaN(currentConversationId)}
+               title="Send"
             >
-               Send
+               ▲
             </button>
        </form>
     </main>

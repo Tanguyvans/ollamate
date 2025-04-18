@@ -168,33 +168,32 @@ function App() {
     <div className="app-layout"> {/* Use className from App.css */}
       {/* Sidebar */}
       <nav className="sidebar"> {/* Use className */}
-        <h2>Navigation</h2>
-        <Link to="/" className="nav-link">Home</Link>
-        {/* <Link to="/chat" className="nav-link">Chat</Link> Removed generic chat link */}
-        <Link to="/settings" className="nav-link">Settings</Link> {/* Add Settings link */}
+        <div className="navigation-section">
+             <h2>Navigation</h2>
+             <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>Home</Link>
+             <Link to="/settings" className={`nav-link ${location.pathname === '/settings' ? 'active' : ''}`}>Settings</Link>
+        </div>
 
-        <hr style={{ margin: '1rem 0' }}/>
+        <hr style={{ margin: '0 1rem 1rem 1rem', borderColor: 'var(--border-color-light)' }}/>
 
-        <h2>Chats</h2>
-        <button onClick={handleNewChat} disabled={!db} style={{marginBottom: '0.5rem', width: '100%'}}>
-          + New Chat
-        </button>
-        {dbError && <p className="error-message" style={{fontSize: '0.8em'}}>{dbError}</p>}
-        <div style={{ overflowY: 'auto', flexGrow: 1 }}> {/* Scrollable chat list */}
-            {conversations.map((convo) => {
-                // Check if the current path matches this conversation's chat route
-                const isActive = location.pathname === `/chat/${convo.id}`;
-                return (
-                    <Link
-                        key={convo.id}
-                        to={`/chat/${convo.id}`}
-                        className="nav-link" // Use the same style
-                        style={{ fontWeight: isActive ? 'bold' : 'normal' }} // Highlight active chat
-                    >
-                        {convo.name} {/* Display conversation name */}
-                    </Link>
-                );
-            })}
+        <div className="chats-section">
+            <h2>Chats</h2>
+            <button onClick={handleNewChat} disabled={!db}>+ New Chat</button>
+            {dbError && <p className="error-message" style={{fontSize: '0.8em', padding: '0 0.5rem'}}>{dbError}</p>}
+            <div className="chats-list"> {/* Scrollable list container */}
+                {conversations.map((convo) => {
+                    const isActive = location.pathname === `/chat/${convo.id}`;
+                    return (
+                        <Link
+                            key={convo.id}
+                            to={`/chat/${convo.id}`}
+                            className={`nav-link ${isActive ? 'active' : ''}`} // Apply active class dynamically
+                        >
+                            {convo.name}
+                        </Link>
+                    );
+                })}
+            </div>
         </div>
       </nav>
 
@@ -260,22 +259,23 @@ function SettingsPage({ db }: { db: Database }) {
         }
     };
 
-    if (isLoading) return <p>Loading settings...</p>;
+    if (isLoading) return <div className="settings-page"><p>Loading settings...</p></div>;
 
     return (
-        <div>
+        <div className="settings-page">
             <h1>Settings</h1>
             {error && <p className="error-message">{error}</p>}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label htmlFor="global-context">Global System Prompt:</label>
-                <textarea
-                    id="global-context"
-                    value={context}
-                    onChange={(e) => setContext(e.target.value)}
-                    rows={10}
-                    style={{ width: '100%', maxWidth: '600px', fontFamily: 'inherit', fontSize: '1em', padding: '0.5em' }}
-                />
-                <button onClick={handleSave} style={{ alignSelf: 'flex-start' }}>Save Context</button>
+            <div className="settings-form">
+                <div>
+                    <label htmlFor="global-context">Global System Prompt:</label>
+                    <textarea
+                        id="global-context"
+                        value={context}
+                        onChange={(e) => setContext(e.target.value)}
+                        rows={10}
+                    />
+                    <button onClick={handleSave}>Save Context</button>
+                </div>
             </div>
         </div>
     );

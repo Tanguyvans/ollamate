@@ -20,232 +20,448 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+
+  --primary-color: #007bff;
+  --primary-color-dark: #1f6feb;
+  --text-color-light: #213547;
+  --text-color-dark: #c9d1d9;
+  --bg-color-light: #ffffff;
+  --bg-color-dark: #0d1117;
+  --sidebar-bg-light: #f8f9fa;
+  --sidebar-bg-dark: #161b22;
+  --border-color-light: #dee2e6;
+  --border-color-dark: #30363d;
+  --input-bg-light: #ffffff;
+  --input-bg-dark: #21262d;
+  --message-user-bg-light: var(--primary-color);
+  --message-user-bg-dark: var(--primary-color-dark);
+  --message-assistant-bg-light: #e9ecef;
+  --message-assistant-bg-dark: #21262d; /* Darker grey */
 }
 
-/* Overall container setup */
+body {
+  margin: 0; /* Remove default body margin */
+  color: var(--text-color-light);
+  background-color: var(--bg-color-light);
+}
+
+/* App Layout Styles */
+.app-layout {
+  display: flex;
+  height: 100vh; /* Full viewport height */
+  overflow: hidden; /* Prevent body scroll */
+}
+
+.sidebar {
+  width: 240px; /* Slightly wider */
+  flex-shrink: 0; /* Prevent shrinking */
+  background-color: var(--sidebar-bg-light);
+  border-right: 1px solid var(--border-color-light);
+  display: flex;
+  flex-direction: column; /* Stack items vertically */
+  height: 100vh; /* Ensure full height */
+}
+
+.sidebar h2 {
+    font-size: 1.1em;
+    margin: 0 0 0.75rem 0;
+    padding: 1rem 1rem 0 1rem; /* Add padding */
+    color: var(--text-color-light);
+}
+
+.sidebar .navigation-section {
+    padding: 0 1rem; /* Padding for nav links */
+    margin-bottom: 1rem;
+}
+.sidebar .chats-section {
+    padding: 0 1rem; /* Padding for chat links */
+    flex-grow: 1; /* Allow chat list to take remaining space */
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Needed for overflow-y with flex-grow */
+}
+.sidebar .chats-section h2 {
+    padding: 0 0 0.75rem 0; /* Adjust padding */
+    margin: 0;
+}
+
+.sidebar .chats-list {
+    overflow-y: auto; /* Make only this part scroll */
+    flex-grow: 1;
+}
+
+.sidebar button {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color-light);
+    background-color: var(--bg-color-light);
+    cursor: pointer;
+    text-align: center;
+    font-weight: 500;
+    color: var(--text-color-light);
+}
+.sidebar button:hover {
+    background-color: #e9ecef;
+}
+.sidebar button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.nav-link {
+  display: block;
+  padding: 0.5rem 0.75rem; /* Add padding */
+  margin-bottom: 0.25rem;
+  text-decoration: none;
+  color: var(--text-color-light);
+  border-radius: 4px; /* Rounded corners */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.nav-link:hover {
+  background-color: rgba(0, 0, 0, 0.05); /* Subtle hover */
+}
+.nav-link.active { /* Style for active link */
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 500;
+}
+
+.main-content {
+  flex-grow: 1;
+  /* padding: 1rem; Remove padding, let chat container handle it */
+  height: 100vh; /* Full height */
+  overflow: hidden; /* Let chat container handle scroll */
+  display: flex; /* Allow chat container to flex */
+  flex-direction: column;
+}
+
+/* Chat Container Adjustments */
 .container.chat-container {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Change from 100vh to 100% to fill parent */
-  max-width: 100%; /* Allow it to use the full width of the main content area */
-  /* margin: 0 auto; Remove auto margin, layout is handled by parent flex */
-  padding: 0; /* Remove padding, handle internally */
-  box-sizing: border-box;
-  /* Ensure the chat container itself doesn't try to scroll its entire block */
-  overflow: hidden;
+  height: 100%; /* Takes full height of its parent (.main-content) */
+  max-width: 100%;
+  overflow: hidden; /* Prevent this container from scrolling */
+  background-color: var(--bg-color-light); /* Add background to container */
 }
-
-/* Header/Model Selection Area */
-.model-selector-area {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #e0e0e0;
-    background-color: #f9f9f9;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-shrink: 0; /* Prevent shrinking */
-}
-.model-selector-area label {
-    font-weight: 500;
-}
-.model-selector-area select {
-  /* Add some basic select styling if needed */
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-.model-selector-area button {
-  padding: 0.2rem 0.4rem;
-  font-size: 0.9em;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
 
 /* Conversation History Area */
 .conversation-history {
-  flex-grow: 1; /* Takes up available vertical space */
-  overflow-y: auto; /* Enables vertical scrolling FOR THIS SECTION ONLY */
-  padding: 1rem;
-  display: flex; /* Use flexbox for messages */
-  flex-direction: column; /* Stack messages vertically */
-  gap: 0.75rem; /* Space between messages */
-  /* Removed border and background, rely on message styling */
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  /* background removed, inherited from parent */
 }
 
 /* Individual Message Styling */
 .message {
-  padding: 0.6rem 0.9rem;
-  border-radius: 18px; /* More rounded bubbles */
+  padding: 0.75rem 1rem; /* Slightly adjusted padding */
+  border-radius: 18px; /* Rounded bubbles */
   max-width: 75%; /* Max width of bubble */
-  word-wrap: break-word;
-  line-height: 1.4;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.message .role-indicator {
-  /* Hide the text indicator, rely on alignment/color */
-  display: none;
-}
-
-.message .message-content pre {
-  white-space: pre-wrap;
-  font-family: inherit;
-  font-size: 1em;
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: none;
+  line-height: 1.45; /* Adjusted line height */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07); /* Subtle shadow */
+  /* word-wrap: break-word; Applied via pre below */
 }
 
 /* User Message Styling */
 .message.user {
-  background-color: #007bff; /* Example blue color */
+  background-color: var(--message-user-bg-light);
   color: white;
-  border-bottom-right-radius: 4px; /* Different corner radius */
+  border-bottom-right-radius: 5px; /* Slightly less rounded corner */
   margin-left: auto; /* Align right */
   align-self: flex-end; /* Align bubble itself to the right */
 }
 
 /* Assistant Message Styling */
 .message.assistant {
-  background-color: #e9ecef; /* Light grey */
-  color: #333;
-  border-bottom-left-radius: 4px; /* Different corner radius */
+  background-color: var(--message-assistant-bg-light);
+  color: var(--text-color-light);
+  border-bottom-left-radius: 5px; /* Slightly less rounded corner */
   margin-right: auto; /* Align left */
   align-self: flex-start; /* Align bubble itself to the left */
 }
 
+/* Styling for the content *inside* the bubble */
+.message-content {
+  /* This div doesn't need much styling itself */
+}
+
+/* Ensure <pre> tag wraps correctly and inherits styles */
+.message-content pre {
+  margin: 0; /* Remove default pre margins */
+  padding: 0;
+  font-family: inherit; /* Use the main font */
+  font-size: 1em; /* Match surrounding text */
+  color: inherit; /* Inherit color (e.g., white for user messages) */
+  white-space: pre-wrap;   /* Crucial: wraps text like normal, preserves line breaks/spaces */
+  overflow-wrap: break-word; /* Crucial: breaks long words if needed to prevent overflow */
+  background: none; /* Ensure no background override */
+  border: none; /* Ensure no border override */
+}
+
+/* Loading Indicator Styling */
 .message.assistant.loading {
     background-color: transparent;
     box-shadow: none;
     font-style: italic;
-    color: #666;
-    align-self: flex-start;
+    color: #6c757d; /* Greyed out color */
+    align-self: flex-start; /* Align left like other assistant messages */
 }
 
-/* Error Message Styling */
-.error-message {
-  color: #dc3545;
-  text-align: center;
-  padding: 0.5rem 1rem;
+/* Model Selector Area */
+.model-selector-area {
+    padding: 0.75rem 1.5rem; /* Match history padding */
+    border-bottom: 1px solid var(--border-color-light);
+    background-color: var(--sidebar-bg-light); /* Match sidebar bg */
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* Increase gap slightly */
+    flex-shrink: 0;
 }
 
 /* Prompt Input Area */
 .prompt-form {
   display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-top: 1px solid #e0e0e0;
-  background-color: #f9f9f9;
+  gap: 0.75rem; /* Space between input and button */
+  padding: 1rem 1.5rem; /* Consistent padding */
+  border-top: 1px solid var(--border-color-light);
+  background-color: var(--sidebar-bg-light); /* Match sidebar/header */
   flex-shrink: 0; /* Prevent shrinking */
+  align-items: center; /* Ensure vertical alignment */
 }
 
 .prompt-form input {
-  flex-grow: 1;
-  border-radius: 18px; /* Match bubble roundness */
-  border: 1px solid #ccc;
-  padding: 0.5em 1em;
-  font-size: 1em;
+  flex-grow: 1; /* Take available space */
+  border-radius: 20px; /* More rounded */
+  border: 1px solid var(--border-color-light);
+  padding: 0.75rem 1.25rem; /* More padding */
+  font-size: 1rem; /* Slightly larger font */
   font-family: inherit;
+  background-color: var(--input-bg-light);
+  color: var(--text-color-light);
   outline: none;
-  resize: none; /* Disable textarea resize if using input */
+  resize: none; /* Keep this if it's an input */
 }
 .prompt-form input:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+.prompt-form input::placeholder {
+    color: #999;
+    opacity: 0.8;
 }
 
-
+/* --- MODIFIED Send Button Styles (Icon Button) --- */
 .prompt-form button {
-  border-radius: 18px;
-  padding: 0.5em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  cursor: pointer;
-  background-color: #007bff;
-  color: white;
+  flex-shrink: 0;
+  width: 40px; /* Adjust size as needed */
+  height: 40px; /* Adjust size as needed */
+  border-radius: 50%; /* Circular */
+  padding: 0; /* Remove padding */
   border: none;
-  transition: background-color 0.2s ease;
+  background-color: var(--primary-color);
+  color: white;
+  cursor: pointer;
+  display: flex; /* Use flexbox for centering */
+  align-items: center; /* Center icon vertically */
+  justify-content: center; /* Center icon horizontally */
+  font-size: 1.2rem; /* Adjust icon size (tweak for your chosen icon) */
+  line-height: 1; /* Prevent extra spacing */
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
+/* Remove text-specific styles if any were added */
+/* font-weight: 500; */
+
+/* Optional: Style for an SVG icon if you use one */
+/* .prompt-form button svg { width: 20px; height: 20px; fill: white; } */
+
 .prompt-form button:hover {
-  background-color: #0056b3;
+  background-color: #0069d9; /* Darker shade on hover */
 }
+
+.prompt-form button:active {
+  transform: scale(0.92); /* Slightly more pronounced click effect */
+}
+
 .prompt-form button:disabled {
-  background-color: #6c757d;
+  background-color: #adb5bd; /* Greyed out */
   cursor: not-allowed;
+  transform: none; /* No click effect when disabled */
+}
+
+/* Settings Page Styling */
+.settings-page {
+    padding: 1.5rem;
+    height: 100%;
+    overflow-y: auto;
+}
+.settings-page h1 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color-light);
+    padding-bottom: 0.5rem;
+}
+.settings-form > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 700px; /* Limit width of settings form */
+}
+.settings-form label {
+    font-weight: 500;
+}
+.settings-form textarea {
+    border-radius: 4px;
+    border: 1px solid var(--border-color-light);
+    padding: 0.75rem;
+    font-family: inherit;
+    font-size: 0.95em;
+    line-height: 1.4;
+    background-color: var(--input-bg-light);
+    color: var(--text-color-light);
+    resize: vertical; /* Allow vertical resize */
+}
+.settings-form button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 4px;
+    border: none;
+    background-color: var(--primary-color);
+    color: white;
+    align-self: flex-start; /* Align button left */
+    transition: background-color 0.2s ease;
+}
+.settings-form button:hover {
+    background-color: #0069d9;
 }
 
 
 /* Dark Mode Styles */
 @media (prefers-color-scheme: dark) {
   :root {
-    color: #c9d1d9;
-    background-color: #0d1117; /* Dark background */
+    /* Re-declare variables for dark mode */
+    --text-color-light: #c9d1d9; /* Use dark mode text color */
+    --bg-color-light: var(--bg-color-dark); /* Use dark mode background */
+    --border-color-light: var(--border-color-dark);
+    --sidebar-bg-light: var(--sidebar-bg-dark);
+    --input-bg-light: var(--input-bg-dark);
+    --message-user-bg-light: var(--message-user-bg-dark);
+    --message-assistant-bg-light: var(--message-assistant-bg-dark);
+    --primary-color: var(--primary-color-dark); /* Use dark primary for buttons etc */
   }
 
-  .model-selector-area {
-      background-color: #161b22;
-      border-bottom-color: #30363d;
-  }
-  .model-selector-area select {
-      background-color: #21262d;
-      border-color: #404854;
-      color: #c9d1d9;
-  }
-  .model-selector-area button {
-      color: #c9d1d9;
+  body {
+     color: var(--text-color-dark);
+     background-color: var(--bg-color-dark);
   }
 
+  .sidebar h2 {
+      color: var(--text-color-dark);
+  }
+  .sidebar button {
+      background-color: var(--input-bg-dark);
+      border-color: var(--border-color-dark);
+      color: var(--text-color-dark);
+  }
+   .sidebar button:hover {
+      background-color: #2a3038;
+   }
+
+  .nav-link {
+    color: var(--text-color-dark);
+  }
+  .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  .nav-link.active {
+    background-color: var(--primary-color-dark);
+    color: white;
+  }
 
   .conversation-history {
-    /* No background needed */
+      background-color: var(--bg-color-dark);
   }
 
   .message.user {
-    background-color: #1f6feb; /* Slightly different blue for dark */
+    background-color: var(--message-user-bg-dark);
   }
 
   .message.assistant {
-    background-color: #21262d; /* Darker grey */
-    color: #c9d1d9;
+    background-color: var(--message-assistant-bg-dark);
+    color: var(--text-color-dark);
   }
 
-   .message.assistant.loading {
+  .message.assistant.loading {
       background-color: transparent;
-      color: #8b949e;
+      color: #8b949e; /* Dark mode grey */
     }
 
-  .error-message {
-    color: #f85149;
+  .model-selector-area {
+      background-color: var(--sidebar-bg-dark); /* Match sidebar */
+      border-bottom-color: var(--border-color-dark);
+  }
+  .model-selector-area select {
+      background-color: var(--input-bg-dark);
+      border-color: var(--border-color-dark);
+      color: var(--text-color-dark);
+  }
+  .model-selector-area button {
+      color: var(--text-color-dark);
   }
 
   .prompt-form {
-    background-color: #161b22;
-    border-top-color: #30363d;
+    background-color: var(--sidebar-bg-dark);
+    border-top-color: var(--border-color-dark);
   }
 
   .prompt-form input {
-    background-color: #21262d;
-    color: #c9d1d9;
-    border-color: #404854;
+    background-color: var(--input-bg-dark);
+    color: var(--text-color-dark);
+    border-color: var(--border-color-dark);
   }
    .prompt-form input:focus {
-    border-color: #1f6feb;
-    box-shadow: 0 0 0 2px rgba(31, 111, 235, 0.3);
-  }
+    border-color: var(--primary-color-dark);
+    box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.25);
+   }
+    .prompt-form input::placeholder {
+        color: #777;
+    }
 
-
+  /* --- MODIFIED Dark Button Styles --- */
   .prompt-form button {
-    background-color: #1f6feb;
-    color: white;
+    background-color: var(--primary-color-dark);
   }
   .prompt-form button:hover {
-    background-color: #388bfd;
+    background-color: #388bfd; /* Lighter blue for dark hover */
   }
-  .prompt-form button:disabled {
-    background-color: #30363d;
-  }
+   .prompt-form button:disabled {
+      background-color: #484f58; /* Darker grey disabled */
+   }
 
+   /* Settings Dark Mode */
+   .settings-page h1 {
+       border-bottom-color: var(--border-color-dark);
+   }
+   .settings-form textarea {
+       background-color: var(--input-bg-dark);
+       color: var(--text-color-dark);
+       border-color: var(--border-color-dark);
+   }
+    .settings-form button {
+      background-color: var(--primary-color-dark);
+    }
+    .settings-form button:hover {
+       background-color: #388bfd;
+    }
+
+  /* Ensure pre color inherits correctly in dark mode */
+  .message-content pre {
+      color: inherit;
+  }
 }
