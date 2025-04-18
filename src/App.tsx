@@ -21,6 +21,7 @@ function App() {
   const [isDbLoading, setIsDbLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation(); // To highlight active chat
+  const [logs, setLogs] = useState("");
 
   // --- Initialize DB and Load Conversations ---
   const initializeDatabase = useCallback(async () => {
@@ -158,6 +159,61 @@ function App() {
     }
   };
 
+  // --- Function to Handle Deleting a Conversation ---
+  const handleDeleteConversation = async (conversationId: number) => {
+    setLogs(`Clicked delete for ID: ${conversationId}`); // Your log state update
+    if (!db) {
+      console.error("[Delete] Database not connected.");
+      setDbError("Database not connected. Cannot delete chat.");
+      // setLogs("DB not connected");
+      return;
+    }
+
+    try {
+
+      // 3. Delete associated messages first
+      console.log(`[Delete] Deleting messages for conversation_id: ${conversationId}...`);
+      const messagesResult = await db.execute(
+          "DELETE FROM chat_messages WHERE conversation_id = $1", // <-- Correct SQL
+          [conversationId]
+      );
+      console.log(`[Delete] Messages deletion result:`, messagesResult);
+      // setLogs(`Deleted ${messagesResult.rowsAffected} messages`);
+
+      // 4. Delete the conversation itself
+      console.log(`[Delete] Deleting conversation entry for id: ${conversationId}...`);
+      const conversationResult = await db.execute(
+          "DELETE FROM conversations WHERE id = $1", // <-- Correct SQL
+          [conversationId]
+      );
+      console.log(`[Delete] Conversation deletion result:`, conversationResult);
+      // setLogs(`Deleted conversation (rows: ${conversationResult.rowsAffected})`);
+      // *** END CORRECT SQL DELETE STATEMENTS ***
+
+
+      // 5. Update frontend state
+      console.log(`[Delete] Updating frontend state (removing ${conversationId})...`);
+      setConversations(prevConversations => {
+           const newState = prevConversations.filter(c => c.id !== conversationId);
+           console.log(`[Delete] New conversations state length: ${newState.length}`);
+           return newState;
+       });
+
+      // 6. Navigate if necessary
+      if (location.pathname === `/chat/${conversationId}`) {
+          console.log(`[Delete] Current chat ${conversationId} deleted, navigating to home.`);
+          // setLogs(`Navigating home`);
+          navigate('/');
+      }
+      console.log(`[Delete] Deletion process completed successfully for ${conversationId}.`);
+      // setLogs(`Deletion complete for ${conversationId}`);
+    } catch (error: any) {
+      console.error(`[Delete] Error during deletion for ${conversationId}:`, error);
+      const errorMsg = `Failed to delete conversation: ${error?.message || error}`;
+      setDbError(errorMsg);
+    }
+  };
+
   // Simple loading/error display
   if (isDbLoading) {
       return <div className="app-layout"><div>Loading Database...</div></div>;
@@ -178,19 +234,34 @@ function App() {
 
         <div className="chats-section">
             <h2>Chats</h2>
+            <h3>{logs}</h3>
             <button onClick={handleNewChat} disabled={!db}>+ New Chat</button>
             {dbError && <p className="error-message" style={{fontSize: '0.8em', padding: '0 0.5rem'}}>{dbError}</p>}
             <div className="chats-list"> {/* Scrollable list container */}
                 {conversations.map((convo) => {
                     const isActive = location.pathname === `/chat/${convo.id}`;
                     return (
-                        <Link
-                            key={convo.id}
-                            to={`/chat/${convo.id}`}
-                            className={`nav-link ${isActive ? 'active' : ''}`} // Apply active class dynamically
-                        >
-                            {convo.name}
-                        </Link>
+                        // Wrapper div for flex layout
+                        <div key={convo.id} className="chat-list-item">
+                            <Link
+                                to={`/chat/${convo.id}`}
+                                className={`nav-link chat-link ${isActive ? 'active' : ''}`}
+                            >
+                                {convo.name}
+                            </Link>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleDeleteConversation(convo.id);
+                                }}
+                                className="delete-chat-btn"
+                                title={`Delete ${convo.name}`} // Accessibility
+                                disabled={!db} // Disable if DB is not ready
+                            >
+                                {/* Simple 'X' icon, replace with SVG later if desired */}
+                                &times;
+                            </button>
+                        </div>
                     );
                 })}
             </div>

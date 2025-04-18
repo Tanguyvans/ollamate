@@ -465,3 +465,97 @@ body {
       color: inherit;
   }
 }
+
+/* Sidebar Chat List Item Styling */
+.chat-list-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    position: relative; /* Needed for potential absolute positioning of button if desired */
+    border-radius: 4px; /* Apply radius to the item for hover background */
+    transition: background-color 0.15s ease; /* Hover transition */
+}
+.chat-list-item:hover {
+    background-color: rgba(0, 0, 0, 0.04); /* Subtle background on item hover */
+}
+
+.chat-list-item .chat-link {
+    flex-grow: 1;
+    margin-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* padding-right adjusted below if needed */
+}
+
+/* --- MODIFIED Delete Button Styles --- */
+.delete-chat-btn {
+    flex-shrink: 0;
+    width: 24px; /* Smaller size */
+    height: 24px; /* Smaller size */
+    border-radius: 50%; /* Circular */
+    background: none; /* No background by default */
+    border: none;
+    color: #aaa; /* Lighter grey */
+    font-size: 1.4rem; /* Adjust 'x' size */
+    line-height: 1; /* Align 'x' better */
+    padding: 0; /* Remove padding */
+    cursor: pointer;
+    margin-left: 0.5rem; /* Space from link text */
+    opacity: 0; /* Hidden by default */
+    visibility: hidden; /* Hide completely */
+    transition: opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease, visibility 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Show button when hovering over the list item */
+.chat-list-item:hover .delete-chat-btn {
+    opacity: 0.7; /* Partially visible on item hover */
+    visibility: visible;
+}
+
+/* Style button itself on its own hover */
+.delete-chat-btn:hover {
+    opacity: 1; /* Fully visible */
+    background-color: #e9ecef; /* Light background */
+    color: #dc3545; /* Red 'x' */
+}
+
+.delete-chat-btn:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+    color: #aaa;
+    background: none; /* No background when disabled */
+}
+/* --- END MODIFIED Delete Button --- */
+
+
+/* Dark Mode Adjustments for Delete Button */
+@media (prefers-color-scheme: dark) {
+    .chat-list-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .delete-chat-btn {
+        color: #888; /* Dark mode muted color */
+    }
+
+     /* Show button when hovering over the list item */
+    .chat-list-item:hover .delete-chat-btn {
+        opacity: 0.7;
+        visibility: visible;
+    }
+
+    .delete-chat-btn:hover {
+       opacity: 1;
+       background-color: #30363d; /* Dark background */
+       color: #f85149; /* Dark mode danger */
+    }
+    .delete-chat-btn:disabled {
+        opacity: 0.2;
+        color: #888;
+        background: none;
+    }
+}
