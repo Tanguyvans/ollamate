@@ -4,8 +4,6 @@ import { invoke } from "@tauri-apps/api/core";
 import Database from '@tauri-apps/plugin-sql'; // Keep type import if needed elsewhere, but instance comes via prop
 import "../App.css"; // Adjust path if needed? Should be correct if App.css is in src/
 
-const DB_NAME = "sqlite:chat_history_persistent.db"; // Maybe use a different name for clarity
-
 interface LocalOllamaModel {
   name: string;
   modified_at: string;
