@@ -42,8 +42,8 @@ A sleek, local desktop application built with Tauri and React to interact easily
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repo-url>
-    cd <your-repo-name>
+    git clone https://github.com/Tanguyvans/ollamate.git
+    cd ollamate
     ```
 2.  **Install frontend dependencies:**
     ```bash
@@ -80,9 +80,18 @@ A sleek, local desktop application built with Tauri and React to interact easily
 6.  Go to **Settings** to modify the global system prompt used for all chats.
 7.  Type your prompts in the input box at the bottom of the chat view and press Enter or click the Send button.
 
-## Contributing 🤝
+## Contributing 🤝 Got Ideas?
 
-(Optional: Add details if you want others to contribute - e.g., contribution guidelines, code of conduct link).
+Ollamate is evolving, and your input is super valuable! Whether you've spotted a pesky bug, have a brilliant idea for a new feature, or just want to suggest a tweak, we'd love to hear from you.
+
+Here are a few ways you can contribute:
+
+- 💡 **Suggest Features:** Have an idea that would make Ollamate even better? Open an issue and tell us about it!
+- 🐛 **Report Bugs:** If something's not working right, please let us know by creating a detailed bug report issue.
+- 📝 **Improve Docs:** Notice a typo or think the README could be clearer? Suggestions (or even pull requests!) are welcome.
+- ✨ **Share Feedback:** General thoughts or suggestions on how to improve the experience? Don't hesitate to share!
+
+Let's make Ollamate awesome together!
 
 ## License 📄
 
