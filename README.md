@@ -1,6 +1,6 @@
 # Ollamate 🧉
 
-![Ollamate Logo](public/logo.png?raw=true)
+<img src="public/logo.png?raw=true" alt="Ollamate Logo" width="512">
 
 A sleek, local desktop application built with Tauri and React to interact easily with your Ollama AI models. Ditch the terminal and manage your conversations in a user-friendly interface.
 
